@@ -38,11 +38,11 @@ def create_random_solution(i_list):
 def check_if_valid_solution(i_list, s_list, limit):
     total_weight = 0
     for i in range(0, len(s_list)):
-        if s_list == 1:
+        if s_list[i] == 1:
             total_weight += i_list[i].weight
         if total_weight > limit:
             return False
-        return True
+    return True
 
 
 # calculate value of picked items
@@ -52,6 +52,14 @@ def calculate_value(i_list, s_list):
         if s_list[i] == 1:
             total_value += i_list[i].value
     return total_value
+
+
+def calculate_weight(i_list, s_list):
+    total_weight = 0
+    for i in range(0, len(s_list)):
+        if s_list[i] == 1:
+            total_weight += i_list[i].weight
+    return total_weight
 
 
 def check_for_duplicate_solution(solution1, solution2):
@@ -118,7 +126,8 @@ def mutation(chromosome):  # GIVE ME CHROMOSOMES!!! YEAH, BUT LIKE, I HAVE LIKE 
         return mutation(chromosome)
 
 
-def create_generation(pop, mutation_rate):
+# Not exactly following the task here
+def create_generation(pop, mutation_rate, recombination_rate):
     new_gen = []
     for i in range(0, len(pop)):
         parent1 = tournament_selection(pop)
@@ -133,36 +142,53 @@ def create_generation(pop, mutation_rate):
 
 
 def best_solution(generation, i_list):
-    best = 0
+    best_value = 0
+    best_weight = 0
     for i in range(0, len(generation)):
-        temp = calculate_value(i_list, generation[i])
-        if temp > best:
-            best = temp
-        return best
+        temp_value = calculate_value(i_list, generation[i])
+        temp_weight = calculate_weight(i_list, generation[i])
+
+        if temp_value > best_value:
+            best_value = temp_value
+            best_weight = temp_weight
+
+        return best_value, best_weight
 
 
 value_list = []
+weight_list = []
 
 
-def genetic_algorithm(w_limit, p_size, gen_size, mutation_rate, i_list):
+def genetic_algorithm(w_limit, p_size, gen_size, mut_prob, i_list):
     pop = create_initial_population(p_size, i_list, w_limit)
     for i in range(0, gen_size):
-        pop = create_generation(pop, mut_prob)
+        pop = create_generation(pop, mut_prob, rec_prob)
         print(pop[0])
 
         print("VALUE:   ", calculate_value(i_list, pop[0]))
-        value_list.append(best_solution(pop, i_list))
-    return pop, value_list
+        print("WEIGHT:  ", calculate_weight(i_list, pop[0]))
+
+        best_value, best_weight = best_solution(pop, i_list)
+        value_list.append(best_value)
+        weight_list.append(best_weight)
+
+    return pop, value_list, weight_list
 
 
-latest_pop, v_list = genetic_algorithm(w_limit=weight_limit,
-                                       p_size=population_size,
-                                       gen_size=generation_size,
-                                       mutation_rate=mut_prob,
-                                       i_list=item_list)
+latest_pop, v_list, w_list = genetic_algorithm(w_limit=weight_limit,
+                                               p_size=population_size,
+                                               gen_size=generation_size,
+                                               mut_prob=mut_prob,
+                                               i_list=item_list)
 
 plt.plot(v_list)
 plt.xlabel('generations')
 plt.ylabel('values')
 plt.title("Values of the solutions during the generations")
+plt.show()
+
+plt.plot(w_list)
+plt.xlabel('generations')
+plt.ylabel('weight')
+plt.title("Weight of the solutions during the generations")
 plt.show()
